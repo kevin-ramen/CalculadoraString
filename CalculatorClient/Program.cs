@@ -2,4 +2,9 @@
 using System.Text.RegularExpressions;
 Calc clc = new Calc();
 
-Console.WriteLine(clc.add("//.\n1.2;3"));
+var regex = Regex.Matches("1,-2,-3,-4,5", @"(?:-\d+)").Cast<Match>()
+    .Select(m => m.Value)
+    .ToArray();
+Console.WriteLine(string.Join(", ", regex));
+Console.WriteLine(Regex.Matches("1,-2,-3,-4,5", @"(?:-\d+)").ToString());
+//Console.WriteLine(clc.add("1,-2,-3,-4,5"));

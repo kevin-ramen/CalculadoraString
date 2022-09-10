@@ -5,25 +5,24 @@ namespace StringCalculator
     {
         public List<double> CreateDoubleList(string numbers, dynamic delimiter)
         {
+            //Check if its a negative number
+            if (Regex.IsMatch(numbers, @"(?:-\d+)"))
+            {
+                var regex = Regex.Matches(numbers, @"(?:-\d+)").Cast<Match>()
+                    .Select(m => m.Value).ToArray();
+                throw new InvalidOperationException("Only Positive numbers are accepted:\n"
+                    + String.Join(",",regex));
+            }
             List<double> addition = new List<double>();
-            List<double> negatives = new List<double>();
             var splitString = numbers.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
             foreach (var number in splitString)
             {
-                //Check if its a negative number
-                if (Regex.IsMatch(number, @"^-\d*"))
-                {
-                    negatives.Add(Convert.ToDouble(number));
-                    continue;
-                }
                 //Check if its greater than 1000
                 double num = Convert.ToDouble(number);
                 if (num > 1000)
                     continue;
                 addition.Add(num);
             }
-            if (negatives.Count() != 0)
-                throw new InvalidOperationException("Only Positive numbers are accepted:\n" + negatives.ToString());
             return addition;
         }
 
