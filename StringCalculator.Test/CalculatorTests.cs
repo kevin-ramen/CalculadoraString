@@ -39,7 +39,7 @@ namespace StringCalculator.Test
         [Theory]
         [InlineData("//.\n1.2.3",6.0)]
         [InlineData("//;\n1;2;3",6.0)]
-        public void Add_ReturnsExpected_WithWrongCustomDelimiter(string numbers,double expected)
+        public void Add_ReturnsExpected_WithCustomDelimiter(string numbers,double expected)
         {
             ctest.add(numbers).Should().Be(expected);
         }
@@ -60,6 +60,18 @@ namespace StringCalculator.Test
         public void Add_Ignore_WithNumbersGreaterThan1000() 
         {
             ctest.add("1,2000,3,4,1000").Should().Be(1008);
+        }
+
+        [Fact]
+        public void Add_Addition_WithMultipleDelimiters()
+        {
+            ctest.add("//[*][,]\n5,5*8").Should().Be(18);
+        }
+
+        [Fact]
+        public void Add_Addition_WithMultipleCharsDelimiters()
+        {
+            ctest.add("//[...][,][;]\n1...2,3;4").Should().Be(10);
         }
     }
 }

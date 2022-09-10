@@ -8,7 +8,6 @@ namespace StringCalculator
             List<double> addition = new List<double>();
             List<double> negatives = new List<double>();
             var splitString = numbers.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
-
             foreach (var number in splitString)
             {
                 //Check if its a negative number
@@ -28,43 +27,48 @@ namespace StringCalculator
             return addition;
         }
 
-        public double add(string numbers)
+        public (string str, string[] delimiters) RegexManipulation(string numbers,string pattern)
         {
-            //Empty = 0
-            if (numbers.Equals("")) 
-                return 0.0;
-
-            List<double> list = new List<double>();
-            string pattern = @"(?:\/\/.\n)";
-
-            //Has the conditional pattern to use a custom delimiter
-            if (Regex.IsMatch(numbers, pattern))
-            {
-                //Removing the conditional
-                char delimiter = numbers[2];
-                numbers = numbers.Remove(0, 4);
-                bool useDelimiter = true;
-                for (int i = 0; i < numbers.Length; i++)
-                {
-                    if (Char.IsDigit(numbers[i]) || numbers[i].Equals(delimiter))
-                    {
-                        continue;
-                    }
-                    useDelimiter = false;
-                }
-                if (useDelimiter) //Uses only the custom delimiter
-                {
-                    list = CreateDoubleList(numbers, delimiter);
-                    return list.Sum();
-                }
-                else 
-                    throw new InvalidOperationException("Use of different custom delimiters");
-            }
-            
-            //Uses , or \n as delimiters
-            list = CreateDoubleList(numbers, new char[] { ',', '\n' });
-            return list.Sum();
+            string conditionalPattern = Regex.Match(numbers, pattern).ToString();//Extracting Conditional pattern from string
+            string delimitersString = Regex.Replace(conditionalPattern, @"[(\n)\/]", "").ToString();//string of the form [delimiter][delimiter]...
+            string[] delimiters = delimitersString.Split(new char[] { '[', ']' }, StringSplitOptions.RemoveEmptyEntries);//spliting string 
+            numbers = Regex.Replace(numbers, pattern, "");//trim string
+            return (str:numbers, delimiters:delimiters);
         }
 
+        public double IsValid(string str, string [] delimiters)
+        {
+            string regexPattern = "[^";
+            foreach (var s in delimiters)//[^.{3}|,|;|\d]
+            {
+                if (s == delimiters[delimiters.Length - 1])
+                {
+                    regexPattern = regexPattern + s[0] + "{" + s.Length.ToString() + "}|0-9]";
+                    continue;
+                }
+                regexPattern = regexPattern + s[0] + "{" + s.Length.ToString() + "}|";
+            }
+            if (Regex.IsMatch(str, regexPattern))
+                throw new InvalidOperationException("Custom Delimiter not expected");
+            return CreateDoubleList(str, delimiters).Sum();
+                
+        }
+        public double add(string numbers)
+        {
+            if (numbers.Equals(""))//Empty = 0
+                return 0.0;
+            if (Regex.IsMatch(numbers, @"(?:\/\/(\[.+\])+\n)"))//Has the conditional pattern to multiple custom delimiters "//[.][.]\n"
+            {
+                var result = RegexManipulation(numbers, @"(?:\/\/(\[.+\])+\n)");
+                return IsValid(result.str,result.delimiters);
+            }
+            if (Regex.IsMatch(numbers, @"(?:\/\/.+\n)"))//Has the conditional pattern to use a custom delimiter "//.\n"
+            {
+                //Removing conditionalPattern from string
+                var result = RegexManipulation(numbers, @"(?:\/\/.+\n)");
+                return IsValid(result.str, result.delimiters);
+            }
+            return CreateDoubleList(numbers, new char[] { ',', '\n' }).Sum();//Uses , or \n as delimiters
+        }
     }
 }
